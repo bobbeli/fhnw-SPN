@@ -17,14 +17,7 @@ public class ProgrammieraufgabeSPN {
 		 */
 		
 		//xi = E((y−1 + i) mod 2l; k) ⊕ yi (i = 0; : : : n − 1)
-		
-		//Key s
-		//Länge muss 32 Bits
-		//0011 1010 1001 0100 1101 0110 0011 1111
 
-		// +3 Punkte. Please. bitte Geben
-		// Variable
-		
 		
 		
 	}
