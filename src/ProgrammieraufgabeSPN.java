@@ -6,12 +6,25 @@ public class ProgrammieraufgabeSPN {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
+		//Gegeben:
+		/*
+		 * SBox-Umwandlung
+		 * Bit-Permutation
+		 * Runden r
+		 * 
+		 */
+		
 		// Start Decrypt Chiffre Text
 		new SPNDecrypter();
-
+		
+	
+				
 		
 		
 	}
+	
+
+
 	
 
 }

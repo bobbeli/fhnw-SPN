@@ -1,3 +1,4 @@
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,30 +9,29 @@ public class SPNDecrypter {
 
 	String chiffreText = "00000100110100100000101110111000000000101000111110001110011111110110000001010001010000111010000000010011011001110010101110110000";
 	public int l = 16;
-	public String k = "00111010100101001101011000111111";
+	public String k;
 	ArrayList<Integer> listOfSplittedBinary;
 	Map encryptedList;
-
-
+	Key keys;
+	SBox sbox;
+	Bitpermutation permut;
+	
 	public SPNDecrypter () {
+		permut = new Bitpermutation();
 		
-		splitInputText();
+		listOfSplittedBinary = splitInputText(chiffreText);
 		
-		System.out.println("dsfd");
+		// SetUp SBox 
+		// Map mit Key (s), Value (sx) in Binary Form
+		// False for Decrypt, True for Encrypt
+		sbox = new SBox("0123456789ABCDEF", "E4D12FB83A6C5907", false);
+		
+		k = "00111010100101001101011000111111";
+		keys = new Key(k);
+		
 		
 		ctrModiDecrypt();
 	}
-	
-/////////////////////////////////////////////////////////////////////////////////////////////
-	//Gegeben:
-	/*
-	 * SBox-Umwandlung
-	 * Bit-Permutation
-	 * Runden r
-	 * 
-	 */
-/////////////////////////////////////////////////////////////////////////////////////////////	
-	
 	
 	
 	/*
@@ -40,15 +40,17 @@ public class SPNDecrypter {
 	 * @return arraylist with splitted blocks
 	 * 
 	 */
-	public void splitInputText() {
+	public ArrayList<Integer> splitInputText(String input) {
 		
-		listOfSplittedBinary = new ArrayList<>();
+		ArrayList<Integer> listOfSplittedBinary = new ArrayList<>();
 		
-		String[] temp = chiffreText.split("(?<=\\G.{16})");
+		String[] temp = input.split("(?<=\\G.{16})");
 		
 		for(String e: temp) {
 			listOfSplittedBinary.add(Integer.parseInt(e, 2));
 		}
+		
+		return listOfSplittedBinary;
 		
 	}
 	
@@ -60,18 +62,37 @@ public class SPNDecrypter {
 		encryptedList = new HashMap();
 		int i = 0;
 		int yi = listOfSplittedBinary.get(0);
+		
 		listOfSplittedBinary.remove(0);
 		
 		for(int value : listOfSplittedBinary){
 			i++;
-			encryptedList.put(i, encrypt((value + i) % 2*l, Integer.parseInt(k,2)) ^ yi);
+			encryptedList.put(i, encrypt((int) ((value + i) % Math.pow(2,l)), i) ^ yi+i);
 			
 		}
 	}
 	
 	
-	public int encrypt(int chiffre, int k){
-		return 1;
+
+	
+	
+	public int encrypt(int chiffre, int kKey){
+		// Schritt 1: Chiffre xor Key
+		int init = chiffre ^ keys.getKeyPartAsInt(kKey);
+		
+		// Schritt 2: S Box
+		String convertedKey = Integer.toString(init,2);
+		String aftersBox = "";
+		for(int i= 0; i<4;i++){
+			aftersBox += sbox.getSxBox(convertedKey);
+		}
+		
+		// Schritt 3: Permutation
+		if(kKey == 0 || kKey == 3)
+			String x = permut.permutString(new StringBuilder(aftersBox));
+		
+		
+		return x;
 	}
 	
 	//3)
