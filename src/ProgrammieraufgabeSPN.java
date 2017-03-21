@@ -1,3 +1,5 @@
+import java.math.BigInteger;
+
 import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 
 public class ProgrammieraufgabeSPN {
@@ -16,11 +18,12 @@ public class ProgrammieraufgabeSPN {
 		
 		// Start Decrypt Chiffre Text
 		new SPNDecrypter();
+		//System.out.println(hexToBin("D"));
 		
+	}
 	
-				
-		
-		
+	public static String hexToBin(String s) {
+		  return new BigInteger(s, 16).toString(2);
 	}
 	
 

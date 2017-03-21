@@ -27,6 +27,8 @@ public class SBox {
 		String[] xSplit = x.split("");
 		String[] sxSplit = sx.split("");
 		
+		String sx, x;
+		
 		sBox = new HashMap<String, String>();
 		
 		if(encrypt){
@@ -34,8 +36,10 @@ public class SBox {
 				sBox.put(hexToBin(xSplit[i]), hexToBin(sxSplit[i]));
 			}
 		}else{
-			for(int i = 0; i<16; i++){			
-				sBox.put(hexToBin(sxSplit[i]), hexToBin(xSplit[i]));
+			for(int i = 0; i<16; i++){
+				sx = hexToBin(sxSplit[i]);
+				x = hexToBin(xSplit[i]);
+				sBox.put(sx, x);
 			}
 		}
 	}
@@ -53,6 +57,8 @@ public class SBox {
 	}
 	
 	public String getSxBox(String binaryX){
+		// toDo 16binary string split to 4 
+		// permut mit sBox
 		return sBox.get(binaryX);
 	}
 

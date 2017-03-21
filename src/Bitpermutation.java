@@ -34,7 +34,7 @@ public class Bitpermutation {
 	
 	public static String permutString(StringBuilder permut){
 		char[] origString = permut.toString().toCharArray();
-		
+		System.out.println(origString.length);
 		for(int i = 0; i < permut.length()-1; i++){
 			permut.setCharAt(pBox.get(i), origString[i]);
 		}

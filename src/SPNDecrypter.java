@@ -8,6 +8,7 @@ import java.util.Map;
 public class SPNDecrypter {
 
 	String chiffreText = "00000100110100100000101110111000000000101000111110001110011111110110000001010001010000111010000000010011011001110010101110110000";
+	
 	public int l = 16;
 	public String k;
 	ArrayList<Integer> listOfSplittedBinary;
@@ -29,7 +30,7 @@ public class SPNDecrypter {
 		k = "00111010100101001101011000111111";
 		keys = new Key(k);
 		
-		
+		System.out.println("Kontrolle: " + keys.getKeyPartAsInt(0));
 		ctrModiDecrypt();
 	}
 	
@@ -54,54 +55,49 @@ public class SPNDecrypter {
 		
 	}
 	
-	
+	//encryptedList.put(i, encrypt((int) ((value + i) % Math.pow(2,l)), i) ^ yi+i);
 	/**
 	 * This Methdo handles Modi Decryption
 	 */
 	public void ctrModiDecrypt () {
 		encryptedList = new HashMap();
-		int i = 0;
+		
+		// get random number [y-1] from chiffre text 
 		int yi = listOfSplittedBinary.get(0);
 		
 		listOfSplittedBinary.remove(0);
 		
-		for(int value : listOfSplittedBinary){
-			i++;
-			encryptedList.put(i, encrypt((int) ((value + i) % Math.pow(2,l)), i) ^ yi+i);
-			
-		}
-	}
-	
-	
 
-	
-	
-	public int encrypt(int chiffre, int kKey){
-		// Schritt 1: Chiffre xor Key
-		int init = chiffre ^ keys.getKeyPartAsInt(kKey);
+		for(int i = 0; i < listOfSplittedBinary.size(); i++){
+			encryptedList.put(i, encrypt( (yi + i) % (int) Math.pow(2,16)) ^ listOfSplittedBinary.get(i));
+		}
+
+	}
+
+
+	public int encrypt(int chiffre){
+		// Initialer Weissschritt: Chiffre xor Key
+		int valk0 = chiffre ^ keys.getKeyPartAsInt(0);
 		
-		// Schritt 2: S Box
-		String convertedKey = Integer.toString(init,2);
-		String aftersBox = "";
-		for(int i= 0; i<4;i++){
-			aftersBox += sbox.getSxBox(convertedKey);
+		String afterFirstSBox;
+		String valk0Binary; 
+		int temp;
+		
+		//Reguläre Runden
+		for(int key = 1; key < 4; key++) {
+			valk0Binary = Integer.toString(valk0,2);
+			afterFirstSBox = sbox.getSxBox(valk0Binary);
+			String dimi = permut.permutString(new StringBuilder(afterFirstSBox));
+			temp = Integer.parseInt(dimi, 2);
+			valk0 = temp ^ keys.getKeyPartAsInt(key);
 		}
 		
-		// Schritt 3: Permutation
-		if(kKey == 0 || kKey == 3)
-			String x = permut.permutString(new StringBuilder(aftersBox));
 		
+		//Verkürzte letzte Runde
+		valk0Binary = Integer.toString(valk0,2);
+		afterFirstSBox = sbox.getSxBox(valk0Binary);
 		
-		return x;
+		return Integer.parseInt(afterFirstSBox, 2)^ keys.getKeyPartAsInt(4);	
 	}
-	
-	//3)
-	// SPN Decrypt
-	
-		// Method S Box und Inverse
-	
-		// Methode BitPermutation 
-	
-		// Methode X-OR Calc
 
 }
