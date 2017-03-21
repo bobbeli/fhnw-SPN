@@ -17,14 +17,15 @@ public class ProgrammieraufgabeSPN {
 		 */
 		
 		// Start Decrypt Chiffre Text
-		new SPNDecrypter();
-		//System.out.println(hexToBin("D"));
+		SPNDecrypter decrypted = new SPNDecrypter();
+		//char x = (char)Integer.parseInt("01101100", 2 );
+		//System.out.println(x);
+
+		
 		
 	}
 	
-	public static String hexToBin(String s) {
-		  return new BigInteger(s, 16).toString(2);
-	}
+
 	
 
 

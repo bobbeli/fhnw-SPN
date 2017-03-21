@@ -45,7 +45,9 @@ public class SBox {
 	}
 	
 	public String hexToBin(String s) {
-		  return new BigInteger(s, 16).toString(2);
+		  int x = Integer.parseInt(s, 16);
+		  String s1 = Integer.toString(x, 2);
+		  return String.format("%1$04d", Integer.parseInt(s1));
 	}
 
 	public Map getsBox() {
@@ -59,7 +61,13 @@ public class SBox {
 	public String getSxBox(String binaryX){
 		// toDo 16binary string split to 4 
 		// permut mit sBox
-		return sBox.get(binaryX);
+		
+		String[] temp = binaryX.split("(?<=\\G.{4})");
+		String returnString = "";
+		for(String x : temp){
+			returnString += sBox.get(x);
+		}
+		return returnString;
 	}
 
 }

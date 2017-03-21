@@ -1,8 +1,11 @@
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import com.sun.xml.internal.ws.util.StringUtils;
 
 
 public class SPNDecrypter {
@@ -27,11 +30,12 @@ public class SPNDecrypter {
 		// False for Decrypt, True for Encrypt
 		sbox = new SBox("0123456789ABCDEF", "E4D12FB83A6C5907", false);
 		
-		k = "00111010100101001101011000111111";
+		k = "00010001001010001000110000000000";
 		keys = new Key(k);
 		
-		System.out.println("Kontrolle: " + keys.getKeyPartAsInt(0));
-		ctrModiDecrypt();
+		//ctrModiDecrypt();
+		int test = encrypt(Integer.parseInt("1010111010110100", 2));
+		System.out.println(Integer.toString(test));
 	}
 	
 	
@@ -69,10 +73,38 @@ public class SPNDecrypter {
 		
 
 		for(int i = 0; i < listOfSplittedBinary.size(); i++){
-			encryptedList.put(i, encrypt( (yi + i) % (int) Math.pow(2,16)) ^ listOfSplittedBinary.get(i));
+			int tt = listOfSplittedBinary.get(i);
+			encryptedList.put(i, encrypt( (yi + i) % (int) Math.pow(2,16)) ^  listOfSplittedBinary.get(i));
 		}
+		
+		System.out.println("done");
 
 	}
+	
+	
+	 public static String convertToText(String s) { 
+
+		  int length = 8;
+		  
+		  String[] ss = new String[s.length()/length];
+		 
+		  int start = 0;
+		  int end = start + length;
+		  
+		  for (int i = 0; i < ss.length; i++) {
+		   ss[i] = s.substring(start, end);
+		   start += length;
+		   end += length;
+		  }
+		  
+		     StringBuilder sb = new StringBuilder();
+		     for (int i = 0; i < ss.length; i++) { 
+		         sb.append( (char)Integer.parseInt(ss[i], 2 ));                                                                                                                                                        
+		     }   
+		     return sb.toString();
+		 }
+	
+
 
 
 	public int encrypt(int chiffre){
@@ -86,6 +118,7 @@ public class SPNDecrypter {
 		//Reguläre Runden
 		for(int key = 1; key < 4; key++) {
 			valk0Binary = Integer.toString(valk0,2);
+			valk0Binary = fillZeros(valk0Binary);
 			afterFirstSBox = sbox.getSxBox(valk0Binary);
 			String dimi = permut.permutString(new StringBuilder(afterFirstSBox));
 			temp = Integer.parseInt(dimi, 2);
@@ -95,9 +128,23 @@ public class SPNDecrypter {
 		
 		//Verkürzte letzte Runde
 		valk0Binary = Integer.toString(valk0,2);
+		
+		valk0Binary = fillZeros(valk0Binary);
+		// TODO Binari valk0Binar -> Binary with zero left. 
 		afterFirstSBox = sbox.getSxBox(valk0Binary);
 		
 		return Integer.parseInt(afterFirstSBox, 2)^ keys.getKeyPartAsInt(4);	
+	}
+	
+	public String fillZeros(String fillIT){
+		if(fillIT.length() < 16){
+			String zero = "0";
+			while(fillIT.length() < 16){
+				zero += fillIT;
+				fillIT = zero;
+			}
+		}
+		return fillIT;
 	}
 
 }
