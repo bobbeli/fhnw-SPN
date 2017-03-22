@@ -58,6 +58,11 @@ public class SBox {
 		this.sBox = sBox;
 	}
 	
+	/**
+	 * Puts 4-Bit Strings thourgh S-Box an
+	 * @param binaryX String
+	 * @return String 
+	 */
 	public String getSxBox(String binaryX){
 		// toDo 16binary string split to 4 
 		// permut mit sBox

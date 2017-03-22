@@ -8,18 +8,14 @@ public class Bitpermutation {
 	
 	public Bitpermutation(){
 		init();
-
 	}
 	
 	public void init(){
-		
 		pBox = new HashMap<Integer, Integer>();
-		
 		
 		for(int i = 0; i<16; i++){
 			pBox.put(bx[i], i);
 		}
-
 	}
 	
 
@@ -32,9 +28,11 @@ public class Bitpermutation {
 		this.pBox = pBox;
 	}
 	
-	public static String permutString(StringBuilder permut){
+	public static String permutString(StringBuilder permut) {
 		char[] origString = permut.toString().toCharArray();
-		System.out.println(origString.length);
+		if(origString.length!=16){
+			System.out.println("permut String not valid"+ permut);
+		}
 		for(int i = 0; i < permut.length()-1; i++){
 			permut.setCharAt(pBox.get(i), origString[i]);
 		}
