@@ -9,7 +9,7 @@ public class SBox {
 	
 	
 	/**
-	 * Instanz of SBox
+	 * Instanz von SBox
 	 * @param x			Values 0-F in hex
 	 * @param sx		S(x) Values in hex
 	 * @param encrypt	ture represents a encrypt sbox, otherwise decrypt sbox
@@ -59,14 +59,11 @@ public class SBox {
 	}
 	
 	/**
-	 * Puts 4-Bit Strings thourgh S-Box an
+	 * Gleicht 4 Bit lange Strings in der SBox ab und wandelt diese um
 	 * @param binaryX String
 	 * @return String 
 	 */
 	public String getSxBox(String binaryX){
-		// toDo 16binary string split to 4 
-		// permut mit sBox
-		
 		String[] temp = binaryX.split("(?<=\\G.{4})");
 		String returnString = "";
 		for(String x : temp){

@@ -10,7 +10,7 @@ public class Key {
 		
 	}
 	
-	public int getKeyPartAsInt(int keyNumber){
+	public String getKeyPartAsInt(int keyNumber){
 		String keyNr = "";
 		
 		switch(keyNumber){
@@ -25,7 +25,7 @@ public class Key {
 		case 4: keyNr = key.substring(0, 16);
 		
 		}
-		return Integer.parseInt(keyNr, 2);
+		return keyNr;
 	}
 	
 

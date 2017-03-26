@@ -1,5 +1,6 @@
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -10,107 +11,156 @@ import com.sun.xml.internal.ws.util.StringUtils;
 
 public class SPNDecrypter {
 
-	String chiffreText = "00000100110100100000101110111000000000101000111110001110011111110110000001010001010000111010000000010011011001110010101110110000";
-	
+
 	public int l = 16;
 	public String k;
-	ArrayList<Integer> listOfSplittedBinary;
-	Map<Integer, Integer> encryptedList;
-	Key keys;
+	ArrayList<String> listOfSplittedBinary;
+	Map<Integer, String> encryptedList;
 	SBox sbox;
 	Bitpermutation permut;
 	
 	public SPNDecrypter () {
+		// Erstellt ein Bitpermutations Object.
+		// Auf diesem lässt sich ein Bin String der Laenge 16 Bermutieren
 		permut = new Bitpermutation();
 		
+		// Initalier Chiffre Text wird in 16 Bit grosse Teilstuecke unterteilt
+		String chiffreText = "00000100110100100000101110111000000000101000111110001110011111110110000001010001010000111010000000010011011001110010101110110000";
+	
 		listOfSplittedBinary = splitInputText(chiffreText);
 		
-		// SetUp SBox 
+		// Erstellt ein S-Box Object 
 		// Map mit Key (s), Value (sx) in Binary Form
-		// False for Decrypt, True for Encrypt
+		// Fuer Decryption gibt man als dritter Paramter False mit
 		sbox = new SBox("0123456789ABCDEF", "E4D12FB83A6C5907", false);
 		
-		// Key Object with all Key of every round
+		// Erstellt ein Key Object 
+		// enthaelt eine Methode zum Abrufen eines Key 
+		// z.B k1 = getKeyPartAsInt(1)
 		k = "00111010100101001101011000111111";
-		keys = new Key(k);
+		Key keys = new Key(k);
 		
-		// Fills decrypted Values form SPN to encryptedList
-		ctrModiDecrypt();
+		// Wiederspiegelt den CTR Modi
+		 ctrModiDecrypt(keys);
+		
+		// Test SPN
+		String kTest = "00010001001010001000110000000000";
+		String testChiffreY = "1010111010110100"; 
+		Key testKey = new Key(kTest);
+		String testResX = encrypt(testChiffreY, testKey);
+		
+		System.out.println("Entschlüsselungs Test: ");
+		System.out.println(testResX);
+		System.out.println("0001001010001111");
 	}
 	
 
 	
-	/*
-	 * This Methdo handles Modi Decryption
+	/**
+	 * Diese Methode wiederspiegelt den CTR Modi
 	 */
-	public void ctrModiDecrypt () {
+	public void ctrModiDecrypt (Key keys) {
 		encryptedList = new HashMap();
 		
-		// get random number [y-1] from chiffre text 
-		int yi = listOfSplittedBinary.get(0);
 		
-		listOfSplittedBinary.remove(0);
-		
-
-		for(int i = 0; i < listOfSplittedBinary.size(); i++){
-			int tt = listOfSplittedBinary.get(i);
-			encryptedList.put(i, encrypt( (yi + i) % (int) Math.pow(2,16)) ^  listOfSplittedBinary.get(i));
+		// Fuehrt für jeden Chiffretext den encrypt Algorithmus (SPN) durch
+		for(int i = 0; i < listOfSplittedBinary.size()-1; i++){
+			
+			int yiAsInt = (Integer.parseInt(listOfSplittedBinary.get(i), 2) + i);
+			String yi = String.format("%" + 16 + "s", Integer.toBinaryString(yiAsInt)).replace(" ", "0");
+			
+			String encryptedVal = xOr( encrypt( yi, keys ) ,  listOfSplittedBinary.get(i+1));
+			encryptedList.put(i, encryptedVal);
 		}
 		printEncryptedVals();
 	
 
 	}
 	
-
-	public int encrypt(int chiffre){
-		// Initialer Weissschritt: Chiffre xor Key
-		int valk0 = chiffre ^ keys.getKeyPartAsInt(0);
-		System.out.println("Initiale Runde");
-		String afterFirstSBox;
-		String valk0Binary; 
-		int temp;
+	/**
+	 * Diese Methode wiederspiegelt die SPN funktionalitate
+	 * @param chiffre value von ChiffreText
+	 * @return decrypted value 
+	 */
+	public String encrypt(String chiffre, Key keys){
+		// Initialer Weissschritt: XOR Key 0
+		String keyinit = keys.getKeyPartAsInt(0);
+		String nachXor = xOr(chiffre, keyinit);
 		
-		//RegulÃ¤re Runden
+		String nachSBox;
+		String valBinary; 
+		
+		// Regulaere Runden (2-4)
 		for(int key = 1; key < 4; key++) {
 			
-			valk0Binary = Integer.toString(valk0,2);
-			valk0Binary = fillZeros(valk0Binary);
-			afterFirstSBox = sbox.getSxBox(valk0Binary);
-			String dimi = permut.permutString(new StringBuilder(afterFirstSBox));
-			temp = Integer.parseInt(dimi, 2);
-			valk0 = temp ^ keys.getKeyPartAsInt(key);
+			valBinary = fillZeros(nachXor);
+			
+			// SBox
+			nachSBox = sbox.getSxBox(valBinary);
+			
+			// String Permutation
+			String nachPermutation = permut.permutStringInv(new StringBuilder(nachSBox));
+			
+			
+			// XOR mit entsprechendem Key
+			// Key 1,2,3 sind bereits permutiert
+			nachXor = xOr(nachPermutation, keys.getKeyPartAsInt(key));
 		}
 		
-		//Verkuerzte letzte Runde
-		valk0Binary = Integer.toString(valk0,2);
+		//Verkuerzte letzte Runde 4
+		valBinary = fillZeros(nachXor);
 		
-		valk0Binary = fillZeros(valk0Binary);
-		// TODO Binari valk0Binar -> Binary with zero left. 
-		afterFirstSBox = sbox.getSxBox(valk0Binary);
+		// SBox
+		nachSBox = sbox.getSxBox(valBinary);
 		
-		return Integer.parseInt(afterFirstSBox, 2) ^ keys.getKeyPartAsInt(4);	
+		// XOR mit Key 4
+		String decryptedVal = xOr(nachSBox, keys.getKeyPartAsInt(4));
+		return decryptedVal;	
+	}
+	/**
+	 * Xor von zwei Strings
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public static String xOr(String x, String y) {
+		byte[] xString = x.getBytes();
+		byte[] yString = y.getBytes();
+		
+		byte[] array = new byte[xString.length];
+
+		for (int i = 0; i < array.length; i++) {
+			array[i] = (byte) (xString[i] ^ yString[i]);
+		}
+		
+		return Arrays.toString(array).replaceAll("\\[|\\]|,|\\s", "");
 	}
 	
-	/*
-	 * Method splits chiffre text into blocks of length of 16
-	 * @param chiffreText string representation of the chiffre text
-	 * @return arraylist with splitted blocks
+	/**
+	 * Method splitted Chiffre Text in 16 Bit lange Int Vals
+	 * @param chiffreText string
+	 * @return arraylist mit 16 Bit langen Int 
 	 * 
 	 */
-	public ArrayList<Integer> splitInputText(String input) {
+	public ArrayList<String> splitInputText(String input) {
 		
-		ArrayList<Integer> listOfSplittedBinary = new ArrayList<>();
+		ArrayList<String> listOfSplittedBinary = new ArrayList<>();
 		
 		String[] temp = input.split("(?<=\\G.{16})");
 		
 		for(String e: temp) {
-			listOfSplittedBinary.add(Integer.parseInt(e, 2));
+			listOfSplittedBinary.add(e);
 		}
 		
 		return listOfSplittedBinary;
 		
 	}
 	
+	/**
+	 * Füllt ein String mit 0 auf bis dieser lengt = 16 hat
+	 * @param fillIT
+	 * @return string mit length = 16
+	 */
 	public String fillZeros(String fillIT){
 		if(fillIT.length() < 16){
 			String zero = "0";
@@ -123,22 +173,32 @@ public class SPNDecrypter {
 		return fillIT;
 	}
 	
+	/**
+	 * Printed entschlüsselte Werte 
+	 */
 	public void printEncryptedVals(){
 		 System.out.println();
 		 System.out.println();
 		 System.out.println("Resultat: ");
+		 int listLengt = encryptedList.size();
+		 
+		 
 		 for (Map.Entry entry : encryptedList.entrySet()) {
-			    int val = (int)entry.getValue();
-			    String valBin = Integer.toString(val, 2);
-				String[] temp = valBin.split("(?<=\\G.{8})");
+			 
+			    String val = (String) entry.getValue();    			    
+			    
+				String[] temp = val.split("(?<=\\G.{8})");
 				
 				for(String res : temp){
+					System.out.println(res);
+
 					char finalres = (char)Integer.parseInt(res, 2 );
-					System.out.print(finalres);
+					System.out.println("Char Value: "+finalres);
+					System.out.println();
 				}
 
-
 			}
+			
 	 }
 
 	
